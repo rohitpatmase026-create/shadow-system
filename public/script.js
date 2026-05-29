@@ -24,7 +24,9 @@ async function sendMessage() {
   if (!message) return;
 
 
+  // ======================
   // USER MESSAGE
+  // ======================
 
   const userMsg =
     document.createElement("div");
@@ -41,12 +43,17 @@ async function sendMessage() {
   // SAVE USER MEMORY
 
   memory.push({
+
     role: "user",
+
     content: message
   });
 
+
   localStorage.setItem(
+
     "shadowMemory",
+
     JSON.stringify(memory)
   );
 
@@ -54,6 +61,12 @@ async function sendMessage() {
   // CLEAR INPUT
 
   input.value = "";
+
+
+  // AUTO SCROLL
+
+  chatBox.scrollTop =
+    chatBox.scrollHeight;
 
 
   // ======================
@@ -80,7 +93,10 @@ async function sendMessage() {
 
   `;
 
-  chatBox.appendChild(loading);
+  chatBox.appendChild(
+    loading
+  );
+
 
   chatBox.scrollTop =
     chatBox.scrollHeight;
@@ -98,11 +114,13 @@ async function sendMessage() {
         method: "POST",
 
         headers: {
+
           "Content-Type":
           "application/json"
         },
 
         body: JSON.stringify({
+
           message,
           memory
         })
@@ -119,7 +137,7 @@ async function sendMessage() {
 
 
     // ======================
-    // AI MESSAGE BOX
+    // AI MESSAGE
     // ======================
 
     const aiMsg =
@@ -208,7 +226,7 @@ async function sendMessage() {
 
 
 // ======================
-// BUTTON CLICK
+// SEND BUTTON
 // ======================
 
 sendBtn.addEventListener(
@@ -218,15 +236,17 @@ sendBtn.addEventListener(
 
 
 // ======================
-// ENTER KEY
+// ENTER KEY FIX
 // ======================
 
 input.addEventListener(
   "keydown",
 
-  function (e) {
+  (e) => {
 
     if (e.key === "Enter") {
+
+      e.preventDefault();
 
       sendMessage();
     }
