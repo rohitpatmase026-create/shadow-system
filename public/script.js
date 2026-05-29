@@ -113,6 +113,47 @@ async function sendMessage() {
 
     loading.remove();
 
+    // AI MESSAGE
+
+const aiMsg =
+document.createElement("div");
+
+aiMsg.className =
+"ai-message";
+
+chatBox.appendChild(aiMsg);
+
+
+// TYPE EFFECT
+
+let index = 0;
+
+const text =
+"⚔ SHADOW OS\n\n" +
+data.reply;
+
+function typingEffect() {
+
+  if (index < text.length) {
+
+    aiMsg.innerHTML =
+    text.substring(0, index)
+    .replace(/\n/g, "<br>");
+
+    index++;
+
+    chatBox.scrollTop =
+    chatBox.scrollHeight;
+
+    setTimeout(
+      typingEffect,
+      10
+    );
+  }
+}
+
+typingEffect();
+
   if (index < finalText.length) {
 
     aiMsg.innerHTML +=
