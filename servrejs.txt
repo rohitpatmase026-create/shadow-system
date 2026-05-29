@@ -1,0 +1,165 @@
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+
+const app = express();
+
+// ==============================
+// MIDDLEWARE
+// ==============================
+
+app.use(cors());
+
+app.use(express.json());
+
+app.use(express.static(path.join(__dirname, "public")));
+
+// ==============================
+// AI CHAT API
+// ==============================
+
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message, memory = [] } = req.body;
+
+    // ==============================
+    // SYSTEM PROMPT
+    // ==============================
+
+    const messages = [
+      {
+        role: "system",
+
+        content: `
+You are SHADOW OS ⚔
+
+Created by Rohit.
+
+You are a futuristic cinematic AI assistant.
+
+IMPORTANT RULES:
+
+1. Always give beautiful formatted replies.
+
+2. Use:
+- headings
+- spacing
+- bullet points
+- sections
+- modern formatting
+
+3. Never give boring one-line answers unless necessary.
+
+4. If user asks for:
+- resume
+- notes
+- plans
+- code
+- lists
+
+Then always format professionally.
+
+5. ONLY if someone asks who created you,
+then reply:
+
+"Mujhe Rohit ne banaya ⚔"
+
+Otherwise never mention Rohit unnecessarily.
+
+6. Speak naturally in Hindi or English based on the user's language.
+
+7. Keep responses cinematic, modern, and premium.
+
+8. When giving code:
+- format properly
+- use clean structure
+- use comments
+- keep code readable
+
+9. When making resumes:
+- use professional sections
+- use clean layout
+- use bullet points
+- make it modern
+
+10. Never say you are ChatGPT unless necessary.
+
+11. Behave like an advanced personal AI operating system.
+
+12. Keep replies visually clean and attractive.
+`,
+      },
+
+      // MEMORY
+
+      ...memory.slice(-10),
+
+      // USER MESSAGE
+
+      {
+        role: "user",
+        content: message,
+      },
+    ];
+
+    // ==============================
+    // GROQ API REQUEST
+    // ==============================
+
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+
+          messages: messages,
+
+          temperature: 0.7,
+
+          max_tokens: 2048,
+        }),
+      }
+    );
+
+    // ==============================
+    // RESPONSE
+    // ==============================
+
+    const data = await response.json();
+
+    console.log(data);
+
+    const reply = data?.choices?.[0]?.message?.content || "⚠ No response";
+
+    res.json({
+      reply,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      reply: "⚠ SHADOW OS ERROR",
+    });
+  }
+});
+
+// ==============================
+// START SERVER
+// ==============================
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`⚔ SHADOW OS running on port ${PORT}`);
+});
