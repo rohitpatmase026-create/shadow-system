@@ -6,24 +6,15 @@ const path = require("path");
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
-
 // ======================
 // MIDDLEWARE
 // ======================
 
 app.use(cors());
+
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
-
-// ======================
-// HOME ROUTE
-// ======================
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
 
 // ======================
 // CHAT API
@@ -31,68 +22,66 @@ app.get("/", (req, res) => {
 
 app.post("/api/chat", async (req, res) => {
   try {
-
     const { message, memory = [] } = req.body;
+
+    // SYSTEM PROMPT
 
     const messages = [
       {
         role: "system",
+
         content: `
 You are SHADOW OS ⚔
 
-A futuristic cinematic AI assistant.
+A smart futuristic AI assistant.
 
-RULES:
+Talk naturally and intelligently.
 
-1. Always give beautiful formatted replies.
+Be friendly, modern, and helpful.
 
-2. Use:
-- headings
-- bullet points
-- spacing
-- sections
+Do not act like a robot.
 
-3. Never give boring one-line replies.
+Use formatting only when useful.
 
-4. Speak naturally in:
-- English
-- Hindi
-- Hinglish
-
-5. Never say you are ChatGPT unless necessary.
-
-6. Make replies feel premium and modern.
-`
+Never say you are ChatGPT unless necessary.
+`,
       },
 
-      ...memory,
+      // MEMORY
+
+      ...memory.slice(-10),
+
+      // USER MESSAGE
 
       {
         role: "user",
-        content: message
-      }
+        content: message,
+      },
     ];
+
+    // GROQ API
 
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
+
       {
         method: "POST",
 
         headers: {
           "Content-Type": "application/json",
 
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
         },
 
         body: JSON.stringify({
-          model: "llama3-70b-8192",
+          model: "llama-3.3-70b-versatile",
 
-          messages,
+          messages: messages,
 
-          temperature: 0.8,
+          temperature: 0.7,
 
-          max_tokens: 1000
-        })
+          max_tokens: 2048,
+        }),
       }
     );
 
@@ -100,18 +89,16 @@ RULES:
 
     console.log(data);
 
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "⚠ SYSTEM ERROR";
-
-    res.json({ reply });
-
-  } catch (error) {
-
-    console.log(error);
+    const reply = data?.choices?.[0]?.message?.content || "⚠ No response";
 
     res.json({
-      reply: "⚠ SYSTEM ERROR"
+      reply,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      reply: "⚠ SHADOW OS ERROR",
     });
   }
 });
@@ -119,6 +106,8 @@ RULES:
 // ======================
 // START SERVER
 // ======================
+
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`⚔ SHADOW OS running on port ${PORT}`);
