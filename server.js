@@ -1,3 +1,4 @@
+const PORT = process.env.PORT || 3000;
 require("dotenv").config();
 
 const express = require("express");
@@ -23,6 +24,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.post("/api/chat", async (req, res) => {
   try {
     const { message, memory = [] } = req.body;
+    
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
+});    
 
     // SYSTEM PROMPT
 
