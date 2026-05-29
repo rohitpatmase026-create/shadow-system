@@ -122,11 +122,42 @@ async function sendMessage() {
     aiMsg.className =
       "ai-message";
 
-    aiMsg.innerHTML =
-      "⚔ SHADOW OS<br><br>" +
-      data.reply;
+    // AI MESSAGE
 
-    chatBox.appendChild(aiMsg);
+const aiMsg =
+document.createElement("div");
+
+aiMsg.className =
+"ai-message";
+
+chatBox.appendChild(aiMsg);
+
+
+// TYPEWRITER EFFECT
+
+const finalText =
+"⚔ SHADOW OS<br><br>" +
+data.reply;
+
+let index = 0;
+
+function typeEffect() {
+
+  if (index < finalText.length) {
+
+    aiMsg.innerHTML +=
+    finalText.charAt(index);
+
+    index++;
+
+    chatBox.scrollTop =
+    chatBox.scrollHeight;
+
+    setTimeout(typeEffect, 8);
+  }
+}
+
+typeEffect();
 
 
     // SAVE AI MEMORY
