@@ -1,4 +1,3 @@
-const PORT = process.env.PORT || 3000;
 require("dotenv").config();
 
 const express = require("express");
@@ -7,15 +6,24 @@ const path = require("path");
 
 const app = express();
 
+const PORT = process.env.PORT || 3000;
+
 // ======================
 // MIDDLEWARE
 // ======================
 
 app.use(cors());
-
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
+
+// ======================
+// HOME ROUTE
+// ======================
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // ======================
 // CHAT API
@@ -23,70 +31,68 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.post("/api/chat", async (req, res) => {
   try {
-    const { message, memory = [] } = req.body;
-    
-app.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
-});    
 
-    // SYSTEM PROMPT
+    const { message, memory = [] } = req.body;
 
     const messages = [
       {
         role: "system",
-
         content: `
 You are SHADOW OS ⚔
 
-A smart futuristic AI assistant.
+A futuristic cinematic AI assistant.
 
-Talk naturally and intelligently.
+RULES:
 
-Be friendly, modern, and helpful.
+1. Always give beautiful formatted replies.
 
-Do not act like a robot.
+2. Use:
+- headings
+- bullet points
+- spacing
+- sections
 
-Use formatting only when useful.
+3. Never give boring one-line replies.
 
-Never say you are ChatGPT unless necessary.
-`,
+4. Speak naturally in:
+- English
+- Hindi
+- Hinglish
+
+5. Never say you are ChatGPT unless necessary.
+
+6. Make replies feel premium and modern.
+`
       },
 
-      // MEMORY
-
-      ...memory.slice(-10),
-
-      // USER MESSAGE
+      ...memory,
 
       {
         role: "user",
-        content: message,
-      },
+        content: message
+      }
     ];
-
-    // GROQ API
 
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
-
       {
         method: "POST",
 
         headers: {
           "Content-Type": "application/json",
 
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`
         },
 
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "llama3-70b-8192",
 
-          messages: messages,
+          messages,
 
-          temperature: 0.7,
+          temperature: 0.8,
 
-          max_tokens: 2048,
-        }),
+          max_tokens: 1000
+        })
       }
     );
 
@@ -94,16 +100,18 @@ Never say you are ChatGPT unless necessary.
 
     console.log(data);
 
-    const reply = data?.choices?.[0]?.message?.content || "⚠ No response";
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "⚠ SYSTEM ERROR";
 
-    res.json({
-      reply,
-    });
+    res.json({ reply });
+
   } catch (error) {
+
     console.log(error);
 
-    res.status(500).json({
-      reply: "⚠ SHADOW OS ERROR",
+    res.json({
+      reply: "⚠ SYSTEM ERROR"
     });
   }
 });
@@ -111,8 +119,6 @@ Never say you are ChatGPT unless necessary.
 // ======================
 // START SERVER
 // ======================
-
-const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`⚔ SHADOW OS running on port ${PORT}`);
