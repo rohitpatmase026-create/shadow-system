@@ -113,36 +113,6 @@ async function sendMessage() {
 
     loading.remove();
 
-
-    // AI MESSAGE
-
-    const aiMsg =
-      document.createElement("div");
-
-    aiMsg.className =
-      "ai-message";
-
-    // AI MESSAGE
-
-const aiMsg =
-document.createElement("div");
-
-aiMsg.className =
-"ai-message";
-
-chatBox.appendChild(aiMsg);
-
-
-// TYPEWRITER EFFECT
-
-const finalText =
-"⚔ SHADOW OS<br><br>" +
-data.reply;
-
-let index = 0;
-
-function typeEffect() {
-
   if (index < finalText.length) {
 
     aiMsg.innerHTML +=
