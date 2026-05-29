@@ -4,14 +4,18 @@ const micBtn = document.getElementById("mic");
 const chatBox = document.getElementById("chat-box");
 
 
+// ======================
 // MEMORY
+// ======================
 
 let memory = JSON.parse(
   localStorage.getItem("shadowMemory")
 ) || [];
 
 
+// ======================
 // SEND MESSAGE
+// ======================
 
 async function sendMessage() {
 
@@ -34,28 +38,27 @@ async function sendMessage() {
   chatBox.appendChild(userMsg);
 
 
-  // SAVE MEMORY
+  // SAVE USER MEMORY
 
   memory.push({
-
     role: "user",
-
     content: message
   });
 
-
   localStorage.setItem(
-
     "shadowMemory",
-
     JSON.stringify(memory)
   );
 
 
+  // CLEAR INPUT
+
   input.value = "";
 
 
+  // ======================
   // THINKING EFFECT
+  // ======================
 
   const loading =
     document.createElement("div");
@@ -65,22 +68,19 @@ async function sendMessage() {
 
   loading.innerHTML = `
 
-  <div class="thinking-text">
-    ⚔ SHADOW OS is thinking
-  </div>
+    <div class="thinking-text">
+      ⚔ SHADOW OS is thinking
+    </div>
 
-  <div class="typing-dots">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
+    <div class="typing-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
 
   `;
 
-  chatBox.appendChild(
-    loading
-  );
-
+  chatBox.appendChild(loading);
 
   chatBox.scrollTop =
     chatBox.scrollHeight;
@@ -88,19 +88,21 @@ async function sendMessage() {
 
   try {
 
+    // ======================
+    // API CALL
+    // ======================
+
     const response =
       await fetch("/api/chat", {
 
         method: "POST",
 
         headers: {
-
           "Content-Type":
           "application/json"
         },
 
         body: JSON.stringify({
-
           message,
           memory
         })
@@ -111,64 +113,56 @@ async function sendMessage() {
       await response.json();
 
 
+    // REMOVE THINKING
+
     loading.remove();
 
-    // AI MESSAGE
 
-const aiMsg =
-document.createElement("div");
+    // ======================
+    // AI MESSAGE BOX
+    // ======================
 
-aiMsg.className =
-"ai-message";
+    const aiMsg =
+      document.createElement("div");
 
-chatBox.appendChild(aiMsg);
+    aiMsg.className =
+      "ai-message";
+
+    chatBox.appendChild(aiMsg);
 
 
-// TYPE EFFECT
+    // ======================
+    // TYPEWRITER EFFECT
+    // ======================
 
-let index = 0;
+    const finalText =
+      "⚔ SHADOW OS\n\n" +
+      data.reply;
 
-const text =
-"⚔ SHADOW OS\n\n" +
-data.reply;
+    let index = 0;
 
-function typingEffect() {
+    function typeEffect() {
 
-  if (index < text.length) {
+      if (index < finalText.length) {
 
-    aiMsg.innerHTML =
-    text.substring(0, index)
-    .replace(/\n/g, "<br>");
+        aiMsg.innerHTML =
+          finalText
+            .substring(0, index)
+            .replace(/\n/g, "<br>");
 
-    index++;
+        index++;
 
-    chatBox.scrollTop =
-    chatBox.scrollHeight;
+        chatBox.scrollTop =
+          chatBox.scrollHeight;
 
-    setTimeout(
-      typingEffect,
-      10
-    );
-  }
-}
+        setTimeout(
+          typeEffect,
+          10
+        );
+      }
+    }
 
-typingEffect();
-
-  if (index < finalText.length) {
-
-    aiMsg.innerHTML +=
-    finalText.charAt(index);
-
-    index++;
-
-    chatBox.scrollTop =
-    chatBox.scrollHeight;
-
-    setTimeout(typeEffect, 8);
-  }
-}
-
-typeEffect();
+    typeEffect();
 
 
     // SAVE AI MEMORY
@@ -188,15 +182,16 @@ typeEffect();
       JSON.stringify(memory)
     );
 
-
-    chatBox.scrollTop =
-      chatBox.scrollHeight;
-
   }
 
   catch (error) {
 
+    console.log(error);
+
     loading.remove();
+
+
+    // ERROR MESSAGE
 
     const errorMsg =
       document.createElement("div");
@@ -212,7 +207,9 @@ typeEffect();
 }
 
 
+// ======================
 // BUTTON CLICK
+// ======================
 
 sendBtn.addEventListener(
   "click",
@@ -220,7 +217,9 @@ sendBtn.addEventListener(
 );
 
 
+// ======================
 // ENTER KEY
+// ======================
 
 input.addEventListener(
   "keydown",
@@ -235,7 +234,9 @@ input.addEventListener(
 );
 
 
+// ======================
 // VOICE INPUT
+// ======================
 
 if (
   "webkitSpeechRecognition"
