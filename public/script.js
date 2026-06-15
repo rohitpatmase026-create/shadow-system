@@ -4,18 +4,14 @@ const micBtn = document.getElementById("mic");
 const chatBox = document.getElementById("chat-box");
 
 
-// ======================
 // MEMORY
-// ======================
 
 let memory = JSON.parse(
   localStorage.getItem("shadowMemory")
 ) || [];
 
 
-// ======================
 // SEND MESSAGE
-// ======================
 
 async function sendMessage() {
 
@@ -24,9 +20,7 @@ async function sendMessage() {
   if (!message) return;
 
 
-  // ======================
   // USER MESSAGE
-  // ======================
 
   const userMsg =
     document.createElement("div");
@@ -40,7 +34,7 @@ async function sendMessage() {
   chatBox.appendChild(userMsg);
 
 
-  // SAVE USER MEMORY
+  // SAVE MEMORY
 
   memory.push({
 
@@ -58,20 +52,10 @@ async function sendMessage() {
   );
 
 
-  // CLEAR INPUT
-
   input.value = "";
 
 
-  // AUTO SCROLL
-
-  chatBox.scrollTop =
-    chatBox.scrollHeight;
-
-
-  // ======================
   // THINKING EFFECT
-  // ======================
 
   const loading =
     document.createElement("div");
@@ -81,15 +65,15 @@ async function sendMessage() {
 
   loading.innerHTML = `
 
-    <div class="thinking-text">
-      ⚔ SHADOW OS is thinking
-    </div>
+  <div class="thinking-text">
+    ⚔ SHADOW OS is thinking
+  </div>
 
-    <div class="typing-dots">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+  <div class="typing-dots">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
 
   `;
 
@@ -103,10 +87,6 @@ async function sendMessage() {
 
 
   try {
-
-    // ======================
-    // API CALL
-    // ======================
 
     const response =
       await fetch("/api/chat", {
@@ -131,14 +111,10 @@ async function sendMessage() {
       await response.json();
 
 
-    // REMOVE THINKING
-
     loading.remove();
 
 
-    // ======================
     // AI MESSAGE
-    // ======================
 
     const aiMsg =
       document.createElement("div");
@@ -146,41 +122,11 @@ async function sendMessage() {
     aiMsg.className =
       "ai-message";
 
-    chatBox.appendChild(aiMsg);
-
-
-    // ======================
-    // TYPEWRITER EFFECT
-    // ======================
-
-    const finalText =
-      "⚔ SHADOW OS\n\n" +
+    aiMsg.innerHTML =
+      "⚔ SHADOW OS<br><br>" +
       data.reply;
 
-    let index = 0;
-
-    function typeEffect() {
-
-      if (index < finalText.length) {
-
-        aiMsg.innerHTML =
-          finalText
-            .substring(0, index)
-            .replace(/\n/g, "<br>");
-
-        index++;
-
-        chatBox.scrollTop =
-          chatBox.scrollHeight;
-
-        setTimeout(
-          typeEffect,
-          10
-        );
-      }
-    }
-
-    typeEffect();
+    chatBox.appendChild(aiMsg);
 
 
     // SAVE AI MEMORY
@@ -200,16 +146,15 @@ async function sendMessage() {
       JSON.stringify(memory)
     );
 
+
+    chatBox.scrollTop =
+      chatBox.scrollHeight;
+
   }
 
   catch (error) {
 
-    console.log(error);
-
     loading.remove();
-
-
-    // ERROR MESSAGE
 
     const errorMsg =
       document.createElement("div");
@@ -225,9 +170,7 @@ async function sendMessage() {
 }
 
 
-// ======================
-// SEND BUTTON
-// ======================
+// BUTTON CLICK
 
 sendBtn.addEventListener(
   "click",
@@ -235,18 +178,14 @@ sendBtn.addEventListener(
 );
 
 
-// ======================
-// ENTER KEY FIX
-// ======================
+// ENTER KEY
 
 input.addEventListener(
   "keydown",
 
-  (e) => {
+  function (e) {
 
     if (e.key === "Enter") {
-
-      e.preventDefault();
 
       sendMessage();
     }
@@ -254,9 +193,7 @@ input.addEventListener(
 );
 
 
-// ======================
 // VOICE INPUT
-// ======================
 
 if (
   "webkitSpeechRecognition"
