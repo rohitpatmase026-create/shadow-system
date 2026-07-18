@@ -3,227 +3,88 @@ const sendBtn = document.getElementById("send");
 const micBtn = document.getElementById("mic");
 const chatBox = document.getElementById("chat-box");
 
+// MEMORY INITIALIZATION
+let memory = JSON.parse(localStorage.getItem("shadowMemory")) || [];
 
-// MEMORY
-
-let memory = JSON.parse(
-  localStorage.getItem("shadowMemory")
-) || [];
-
-
-// SEND MESSAGE
-
+// SEND MESSAGE FUNCTION
 async function sendMessage() {
-
   const message = input.value.trim();
-
   if (!message) return;
 
-
-  // USER MESSAGE
-
-  const userMsg =
-    document.createElement("div");
-
-  userMsg.className =
-    "user-message";
-
-  userMsg.innerHTML =
-    message;
-
+  // USER MESSAGE TO UI
+  const userMsg = document.createElement("div");
+  userMsg.className = "user-message";
+  userMsg.innerHTML = message;
   chatBox.appendChild(userMsg);
 
-
-  // SAVE MEMORY
-
-  memory.push({
-
-    role: "user",
-
-    content: message
-  });
-
-
-  localStorage.setItem(
-
-    "shadowMemory",
-
-    JSON.stringify(memory)
-  );
-
+  // SAVE TO LOCAL MEMORY
+  memory.push({ role: "user", content: message });
+  localStorage.setItem("shadowMemory", JSON.stringify(memory));
 
   input.value = "";
 
-
   // THINKING EFFECT
-
-  const loading =
-    document.createElement("div");
-
-  loading.className =
-    "ai-message thinking";
-
+  const loading = document.createElement("div");
+  loading.className = "ai-message thinking";
   loading.innerHTML = `
-
-  <div class="thinking-text">
-    ⚔ SHADOW OS is thinking
-  </div>
-
-  <div class="typing-dots">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-
+    <div class="thinking-text">⚔ SHADOW OS is thinking</div>
+    <div class="typing-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   `;
-
-  chatBox.appendChild(
-    loading
-  );
-
-
-  chatBox.scrollTop =
-    chatBox.scrollHeight;
-
+  chatBox.appendChild(loading);
+  chatBox.scrollTop = chatBox.scrollHeight;
 
   try {
-
-    const response =
-      await fetch("/api/chat", {
-
-        method: "POST",
-
-        headers: {
-
-          "Content-Type":
-          "application/json"
-        },
-
-        body: JSON.stringify({
-
-          message,
-          memory
-        })
-      });
-
-
-    const data =
-      await response.json();
-
-
-    loading.remove();
-
-
-    // AI MESSAGE
-
-    const aiMsg =
-      document.createElement("div");
-
-    aiMsg.className =
-      "ai-message";
-
-    aiMsg.innerHTML =
-      "⚔ SHADOW OS<br><br>" +
-      data.reply;
-
-    chatBox.appendChild(aiMsg);
-
-
-    // SAVE AI MEMORY
-
-    memory.push({
-
-      role: "assistant",
-
-      content: data.reply
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, memory })
     });
 
-
-    localStorage.setItem(
-
-      "shadowMemory",
-
-      JSON.stringify(memory)
-    );
-
-
-    chatBox.scrollTop =
-      chatBox.scrollHeight;
-
-  }
-
-  catch (error) {
-
+    const data = await response.json();
     loading.remove();
 
-    const errorMsg =
-      document.createElement("div");
+    // AI MESSAGE TO UI
+    const aiMsg = document.createElement("div");
+    aiMsg.className = "ai-message";
+    aiMsg.innerHTML = "⚔ SHADOW OS<br><br>" + data.reply;
+    chatBox.appendChild(aiMsg);
 
-    errorMsg.className =
-      "ai-message";
+    // SAVE AI REPLY TO MEMORY
+    memory.push({ role: "assistant", content: data.reply });
+    localStorage.setItem("shadowMemory", JSON.stringify(memory));
 
-    errorMsg.innerHTML =
-      "⚠ SYSTEM ERROR";
-
+    chatBox.scrollTop = chatBox.scrollHeight;
+  } catch (error) {
+    loading.remove();
+    const errorMsg = document.createElement("div");
+    errorMsg.className = "ai-message";
+    errorMsg.innerHTML = "⚠ SYSTEM ERROR";
     chatBox.appendChild(errorMsg);
   }
 }
 
-
-// BUTTON CLICK
-
-sendBtn.addEventListener(
-  "click",
-  sendMessage
-);
-
-
-// ENTER KEY
-
-input.addEventListener(
-  "keydown",
-
-  function (e) {
-
-    if (e.key === "Enter") {
-
-      sendMessage();
-    }
+// EVENTS
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    sendMessage();
   }
-);
+});
 
+// VOICE SPEECH INTEGRATION
+if ("webkitSpeechRecognition" in window) {
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-US";
 
-// VOICE INPUT
+  micBtn.addEventListener("click", () => {
+    recognition.start();
+  });
 
-if (
-  "webkitSpeechRecognition"
-  in window
-) {
-
-  const recognition =
-    new webkitSpeechRecognition();
-
-  recognition.lang =
-    "en-US";
-
-
-  micBtn.addEventListener(
-
-    "click",
-
-    () => {
-
-      recognition.start();
-    }
-  );
-
-
-  recognition.onresult =
-    function (event) {
-
-      input.value =
-
-        event.results[0][0]
-        .transcript;
-    };
+  recognition.onresult = function (event) {
+    input.value = event.results[0][0].transcript;
+  };
 }
