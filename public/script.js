@@ -11,35 +11,30 @@ let allChats = JSON.parse(localStorage.getItem("shadowAllChats")) || [];
 let currentChatId = localStorage.getItem("shadowCurrentChatId") || null;
 let memory = [];
 
-// 1. RENDER CHAT HISTORY SIDEBAR ITEMS (FIXED & FULLY VISIBLE)
+// 1. RENDER CHAT HISTORY SIDEBAR ITEMS (WITH DELETE BUTTON)
 function renderSidebar() {
-  historyList.innerHTML = ""; // Clear existing elements
+  historyList.innerHTML = ""; 
   
   allChats.forEach(chat => {
-    // Parent Div Container Create Karna
     const wrapper = document.createElement("div");
     wrapper.className = `history-item-wrapper ${chat.id == currentChatId ? 'active' : ''}`;
 
-    // Chat Item Text Element
     const item = document.createElement("div");
     item.className = "history-item";
     item.innerText = chat.title || "Empty Chat";
     item.addEventListener("click", () => switchChat(chat.id));
 
-    // Delete Button Element (🗑)
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-chat-btn";
     deleteBtn.innerHTML = "🗑";
-    deleteBtn.style.opacity = "1"; // Force Visibility Always On
     deleteBtn.title = "Delete Chat";
     
-    // Delete action handler
+    // Explicit event handling with propagation lock
     deleteBtn.addEventListener("click", (e) => {
-      e.stopPropagation(); // Stops parent container click from triggering switchChat
+      e.stopPropagation(); 
       deleteChat(chat.id);
     });
 
-    // Sub-elements ko main container wrapper me append karna
     wrapper.appendChild(item);
     wrapper.appendChild(deleteBtn);
     historyList.appendChild(wrapper);
@@ -52,7 +47,6 @@ function deleteChat(chatId) {
     allChats = allChats.filter(c => c.id != chatId);
     localStorage.setItem("shadowAllChats", JSON.stringify(allChats));
     
-    // Active window content reset check
     if (currentChatId == chatId) {
       startNewChat();
     } else {
@@ -99,16 +93,39 @@ function startNewChat() {
   renderSidebar();
 }
 
-// 5. TEXT TO SPEECH ENGINE
+// 5. SMART MULTI-LINGUAL TEXT TO SPEECH ENGINE (Hindi + Marathi + English Fix)
 function speak(text) {
-  window.speechSynthesis.cancel();
-  const cleanText = text.replace(/<\/?[^>]+(>|$)/g, "").replace(/⚔|⚠/g, "").replace("SHADOW OS", "");
+  window.speechSynthesis.cancel(); // Purani voice ko immediate stop karo
+
+  // Clean text from HTML tags and UI symbols
+  const cleanText = text.replace(/<\/?[^>]+(>|$)/g, "").replace(/⚔|⚠/g, "").replace("SHADOW OS", "").trim();
+  if (!cleanText) return;
+
   const utterance = new SpeechSynthesisUtterance(cleanText);
   const voices = window.speechSynthesis.getVoices();
-  const selectedVoice = voices.find(voice => voice.name.includes("Google") || voice.lang === "en-US");
-  if (selectedVoice) utterance.voice = selectedVoice;
-  utterance.pitch = 0.9;
-  utterance.rate = 1.0;
+
+  // Devanagari Unicode character range match (Hindi aur Marathi detection logic)
+  const hasDevanagari = /[\u0900-\u097F]/.test(cleanText);
+  let selectedVoice = null;
+
+  if (hasDevanagari) {
+    // Hindi/Marathi (hi-IN / mr-IN) ya India base generic local engine search
+    selectedVoice = voices.find(voice => voice.lang.startsWith("hi") || voice.lang.startsWith("mr") || voice.name.includes("Hindi") || voice.name.includes("India"));
+    utterance.lang = "hi-IN"; 
+    utterance.pitch = 1.0;    // Natural native Indian speaker pitch
+    utterance.rate = 1.05;   // Clear reading speed 
+  } else {
+    // English custom configuration (Cool robotic/futuristic text processing)
+    selectedVoice = voices.find(voice => voice.name.includes("Google") || voice.lang === "en-US");
+    utterance.lang = "en-US";
+    utterance.pitch = 0.9;     // Cyberpunk deep cinematic baritone
+    utterance.rate = 1.0;
+  }
+
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+  }
+
   window.speechSynthesis.speak(utterance);
 }
 
@@ -177,6 +194,7 @@ async function sendMessage() {
     `;
     chatBox.appendChild(aiMsg);
 
+    // Dynamic Voice output logic runs here
     speak(data.reply);
 
     memory.push({ role: "assistant", content: data.reply });
@@ -194,7 +212,7 @@ async function sendMessage() {
   }
 }
 
-// SYSTEM TRIGGERS & INITIAL LOADING
+// SYSTEM TRIGGERS & INITIAL LOAD LIFECYCLES
 newChatBtn.addEventListener("click", startNewChat);
 sendBtn.addEventListener("click", sendMessage);
 input.addEventListener("keydown", (e) => { if (e.key === "Enter") sendMessage(); });
@@ -222,4 +240,5 @@ if ("webkitSpeechRecognition" in window) {
   recognition.onend = () => { micBtn.style.background = "rgba(255, 255, 255, 0.05)"; };
 }
 
+// Voices ko asynchronous download hone par load state refresh karne ke liye rule
 window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
