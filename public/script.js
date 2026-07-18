@@ -11,20 +11,57 @@ let allChats = JSON.parse(localStorage.getItem("shadowAllChats")) || [];
 let currentChatId = localStorage.getItem("shadowCurrentChatId") || null;
 let memory = [];
 
-// 1. RENDER CHAT HISTORY SIDEBAR ITEMS
+// 1. RENDER CHAT HISTORY SIDEBAR ITEMS (FIXED & FULLY VISIBLE)
 function renderSidebar() {
-  historyList.innerHTML = "";
+  historyList.innerHTML = ""; // Clear existing elements
+  
   allChats.forEach(chat => {
+    // Parent Div Container Create Karna
+    const wrapper = document.createElement("div");
+    wrapper.className = `history-item-wrapper ${chat.id == currentChatId ? 'active' : ''}`;
+
+    // Chat Item Text Element
     const item = document.createElement("div");
-    item.className = `history-item ${chat.id == currentChatId ? 'active' : ''}`;
-    // Sidebar list me user ka pehla sawaal dikhega heading ki tarah
+    item.className = "history-item";
     item.innerText = chat.title || "Empty Chat";
     item.addEventListener("click", () => switchChat(chat.id));
-    historyList.appendChild(item);
+
+    // Delete Button Element (🗑)
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-chat-btn";
+    deleteBtn.innerHTML = "🗑";
+    deleteBtn.style.opacity = "1"; // Force Visibility Always On
+    deleteBtn.title = "Delete Chat";
+    
+    // Delete action handler
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Stops parent container click from triggering switchChat
+      deleteChat(chat.id);
+    });
+
+    // Sub-elements ko main container wrapper me append karna
+    wrapper.appendChild(item);
+    wrapper.appendChild(deleteBtn);
+    historyList.appendChild(wrapper);
   });
 }
 
-// 2. SWITCH TO SPECIFIC CHAT SESSION
+// 2. DELETE CHAT FUNCTION
+function deleteChat(chatId) {
+  if (confirm("Are you sure you want to delete this chat?")) {
+    allChats = allChats.filter(c => c.id != chatId);
+    localStorage.setItem("shadowAllChats", JSON.stringify(allChats));
+    
+    // Active window content reset check
+    if (currentChatId == chatId) {
+      startNewChat();
+    } else {
+      renderSidebar();
+    }
+  }
+}
+
+// 3. SWITCH TO SPECIFIC CHAT SESSION
 function switchChat(chatId) {
   currentChatId = chatId;
   localStorage.setItem("shadowCurrentChatId", chatId);
@@ -35,7 +72,6 @@ function switchChat(chatId) {
     chatBox.innerHTML = "";
     appWrapper.classList.remove("initial-state");
     
-    // UI par purani messages load karein
     memory.forEach(msg => {
       const msgDiv = document.createElement("div");
       if (msg.role === "user") {
@@ -53,7 +89,7 @@ function switchChat(chatId) {
   renderSidebar();
 }
 
-// 3. START A COMPLETELY NEW CHAT SESSION
+// 4. START A COMPLETELY NEW CHAT SESSION
 function startNewChat() {
   currentChatId = null;
   localStorage.removeItem("shadowCurrentChatId");
@@ -63,7 +99,7 @@ function startNewChat() {
   renderSidebar();
 }
 
-// 4. TEXT TO SPEECH ENGINE
+// 5. TEXT TO SPEECH ENGINE
 function speak(text) {
   window.speechSynthesis.cancel();
   const cleanText = text.replace(/<\/?[^>]+(>|$)/g, "").replace(/⚔|⚠/g, "").replace("SHADOW OS", "");
@@ -81,35 +117,31 @@ function speakFromElement(buttonElement) {
   speak(messageText);
 }
 
-// 5. SEND MESSAGE FUNCTION
+// 6. SEND MESSAGE FUNCTION
 async function sendMessage() {
   const message = input.value.trim();
   if (!message) return;
 
-  // Agar pehla message hai toh new session id create karo
   if (!currentChatId) {
     currentChatId = Date.now().toString();
     localStorage.setItem("shadowCurrentChatId", currentChatId);
     
     const newSession = {
       id: currentChatId,
-      title: message, // Pehla message title banega
+      title: message,
       messages: []
     };
-    allChats.unshift(newSession); // New session top par add karo
+    allChats.unshift(newSession);
     appWrapper.classList.remove("initial-state");
   }
 
-  // UI user render
   const userMsg = document.createElement("div");
   userMsg.className = "user-message";
   userMsg.innerHTML = `<div class="msg-text">${message}</div><button class="speak-msg-btn" onclick="speakFromElement(this)">🔊 Listen</button>`;
   chatBox.appendChild(userMsg);
 
-  // Update logic arrays
   memory.push({ role: "user", content: message });
   
-  // Current active session ko global chats me synchronize karo
   const chatIdx = allChats.findIndex(c => c.id == currentChatId);
   if (chatIdx !== -1) allChats[chatIdx].messages = memory;
   
@@ -118,7 +150,6 @@ async function sendMessage() {
 
   input.value = "";
 
-  // THINKING LOGIC
   const loading = document.createElement("div");
   loading.className = "ai-message thinking";
   loading.innerHTML = `
@@ -138,7 +169,6 @@ async function sendMessage() {
     const data = await response.json();
     loading.remove();
 
-    // AI DISPLAY RENDERING
     const aiMsg = document.createElement("div");
     aiMsg.className = "ai-message";
     aiMsg.innerHTML = `
@@ -149,7 +179,6 @@ async function sendMessage() {
 
     speak(data.reply);
 
-    // Save reply status
     memory.push({ role: "assistant", content: data.reply });
     if (chatIdx !== -1) allChats[chatIdx].messages = memory;
     
@@ -165,7 +194,7 @@ async function sendMessage() {
   }
 }
 
-// RUN INITIALIZATIONS ON LOAD
+// SYSTEM TRIGGERS & INITIAL LOADING
 newChatBtn.addEventListener("click", startNewChat);
 sendBtn.addEventListener("click", sendMessage);
 input.addEventListener("keydown", (e) => { if (e.key === "Enter") sendMessage(); });
@@ -176,7 +205,7 @@ if (currentChatId) {
   renderSidebar();
 }
 
-// MIC INTEGRATION (SPEECH-TO-TEXT)
+// MIC SPEECH CONTROL
 if ("webkitSpeechRecognition" in window) {
   const recognition = new webkitSpeechRecognition();
   recognition.lang = "en-US";
