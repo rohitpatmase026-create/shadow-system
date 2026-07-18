@@ -7,32 +7,42 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="app">
-      <!-- TOP BAR -->
-      <div class="top-bar">
-        <h1>SHADOW OS</h1>
-        <p>Cinematic AI Assistant</p>
-      </div>
-
-      <!-- CHAT -->
-      <div id="chat-box">
-        <div class="ai-message">
-          ⚔ SYSTEM ONLINE
-          <br /><br />
-          Welcome back.
-          <br />
-          SHADOW OS initialized.
+    <!-- MAIN WRAPPER WITH SIDEBAR CONTAINER -->
+    <div class="main-container">
+      
+      <!-- LEFT SIDEBAR FOR CHAT HISTORY -->
+      <div id="sidebar">
+        <button id="new-chat-btn">⚡ + New Chat</button>
+        <div class="sidebar-title">Recent Conversations</div>
+        <div id="history-list">
+          <!-- Saved chats will be injected here dynamically -->
         </div>
       </div>
 
-      <!-- INPUT CONTAINER FOR PERFECT CENTERING -->
-      <div class="input-container">
-        <div class="input-area">
-          <input type="text" id="input" placeholder="Ask anything..." />
-          <button id="mic">🎤</button>
-          <button id="send">ARISE</button>
+      <!-- RIGHT MAIN APP CONTAINER -->
+      <div id="app" class="initial-state">
+        <!-- TOP BAR -->
+        <div class="top-bar">
+          <h1>SHADOW OS</h1>
+          <p>Cinematic AI Assistant</p>
+        </div>
+
+        <!-- CHAT BOX -->
+        <div id="chat-box">
+          <!-- Messages appear here -->
+        </div>
+
+        <!-- CENTRALIZED INPUT CONTAINER -->
+        <div class="input-container">
+          <div class="welcome-text">How can I assist you today?</div>
+          <div class="input-area">
+            <input type="text" id="input" placeholder="Ask anything..." />
+            <button id="mic">🎤</button>
+            <button id="send">ARISE</button>
+          </div>
         </div>
       </div>
+
     </div>
 
     <script src="script.js"></script>
