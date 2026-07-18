@@ -36,6 +36,14 @@ body {
   overflow-y: auto;
 }
 
+#sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+#sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
 #new-chat-btn {
   width: 100%;
   padding: 12px;
@@ -68,25 +76,60 @@ body {
   gap: 8px;
 }
 
-/* INDIVIDUAL HISTORY ITEM */
-.history-item {
-  padding: 12px;
+/* INDIVIDUAL HISTORY ITEM WITH DELETE BUTTON */
+.history-item-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 10px;
+  padding: 2px 8px 2px 2px;
+  transition: 0.2s;
+}
+
+.history-item-wrapper:hover, .history-item-wrapper.active {
+  background: rgba(0, 140, 255, 0.12);
+  border-color: rgba(0, 140, 255, 0.3);
+}
+
+.history-item {
+  flex: 1;
+  padding: 10px;
   font-size: 13px;
   color: #d1d5db;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* Badi lines automatically cut hokar ... ho jayengi */
-  transition: 0.2s;
+  text-overflow: ellipsis;
 }
 
-.history-item:hover, .history-item.active {
-  background: rgba(0, 140, 255, 0.12);
-  border-color: rgba(0, 140, 255, 0.3);
+.history-item-wrapper:hover .history-item {
   color: white;
+}
+
+.delete-chat-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px;
+  border-radius: 6px;
+  opacity: 0.4;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-item-wrapper:hover .delete-chat-btn {
+  opacity: 1;
+}
+
+.delete-chat-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
 }
 
 /* RIGHT SIDE MAIN APP */
@@ -134,19 +177,27 @@ body {
   scroll-behavior: smooth;
 }
 
-/* INITIAL STATE FOR CENTERING SCREEN SEARCH BAR */
+/* INITIAL STATE FIXES - PERFECT CENTERING WITHOUT LEANING RIGHT */
 #app.initial-state #chat-box {
   display: none;
 }
 
+#app.initial-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 #app.initial-state .input-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: static;
+  transform: none;
+  display: flex;
   flex-direction: column;
-  padding: 0;
-  width: 90%;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0 40px;
+  gap: 25px; /* Welcome text aur input area ke bich ki space balance ki */
 }
 
 #app.initial-state .welcome-text {
@@ -155,16 +206,15 @@ body {
 
 .welcome-text {
   display: none;
-  font-size: 22px;
+  font-size: 28px; /* Thoda bada kiya premium visibility ke liye */
+  font-weight: 500;
   color: #8ab4ff;
-  margin-bottom: 20px;
   letter-spacing: 1px;
   text-align: center;
   text-shadow: 0 0 10px rgba(0, 140, 255, 0.3);
 }
 
 .input-container {
-  position: relative;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -229,13 +279,17 @@ body {
   width: 48px;
   height: 48px;
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: #008cff;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 18px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #mic:hover {
   background: rgba(0, 140, 255, 0.18);
+  border-color: rgba(0, 140, 255, 0.5);
   box-shadow: 0 0 18px rgba(0, 140, 255, 0.25);
 }
 
@@ -295,15 +349,22 @@ body {
 /* MOBILE COMPATIBILITY */
 @media (max-width: 768px) {
   .main-container { flex-direction: column; }
-  #sidebar { width: 100%; height: 60px; flex-direction: row; align-items: center; overflow-x: auto; overflow-y: hidden; white-space: nowrap; }
+  #sidebar { width: 100%; height: 60px; flex-direction: row; align-items: center; overflow-x: auto; overflow-y: hidden; white-space: nowrap; padding: 10px; }
   .sidebar-title { display: none; }
   #history-list { flex-direction: row; gap: 8px; }
+  .history-item-wrapper { padding: 2px 4px 2px 2px; }
   #new-chat-btn { width: auto; padding: 6px 12px; }
   #app { height: calc(100vh - 60px); }
-  #app.initial-state .input-container { width: 95%; }
+  
+  #app.initial-state .input-container { 
+    padding: 0 15px;
+    gap: 15px;
+  }
+  
+  .welcome-text { font-size: 22px; }
   .input-container { padding: 0 10px 10px 10px; }
   .input-area { padding: 10px; }
   #input { font-size: 14px; padding: 10px; }
   #send { padding: 10px 16px; }
-  #mic { width: 40px; height: 40px; }
+  #mic { width: 40px; height: 40px; font-size: 16px; }
 }
