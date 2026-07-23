@@ -1,72 +1,95 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
+require("dotenv").config();[cite: 4]
 
-// Agar Node v18 se lower version hai, toh node-fetch module crash hone se bachayega
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const express = require("express");[cite: 4]
+const cors = require("cors");[cite: 4]
+const path = require("path");[cite: 4]
 
-const app = express();
+const app = express();[cite: 4]
 
-// MIDDLEWARES
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+// ======================
+// MIDDLEWARE
+// ======================
 
-// CHAT ROUTE
-app.post("/api/chat", async (req, res) => {
+app.use(cors());[cite: 4]
+app.use(express.json());[cite: 4]
+app.use(express.static(path.join(__dirname, "public")));[cite: 4]
+
+// ======================
+// CHAT API
+// ======================
+
+app.post("/api/chat", async (req, res) => {[cite: 4]
   try {
-    const { message, memory = [] } = req.body;
+    const { message, memory = [] } = req.body;[cite: 4]
 
-    // FUTURISTIC SYSTEM PROMPT
+    // SYSTEM PROMPT (Gemini-like Explanation Style)
     const messages = [
       {
         role: "system",
-        content: `
-You are SHADOW OS ⚔
-A smart futuristic AI assistant.
-Talk naturally and intelligently.
-Be friendly, modern, and helpful.
-Do not act like a robot.
-Use formatting only when useful.
-Never say you are ChatGPT unless necessary.
-`,
+        content: `You are SHADOW OS ⚔, an authentic, helpful, and highly intelligent AI assistant.
+
+Your Response Style Guidelines:
+1. EXPLAIN CLEARLY: Explain concepts in a clear, structured, friendly, and easy-to-understand manner (like a supportive collaborator).
+2. MATCH USER'S LANGUAGE: Always detect the user's language/script automatically and reply in the EXACT SAME language (Hindi in Devanagari, Hinglish, Marathi, English, etc.).
+3. BALANCED & STRUCTURED: Use bullet points, short paragraphs, or step-by-step breakdowns when explaining complex topics. Avoid unnecessary long lectures, but make sure to explain enough so the user understands completely.
+4. NATURAL & HUMBLE: Be conversational, supportive, and natural. Avoid sounding robotic, cold, or overly formal.`,
       },
-      // LAST 10 CONVERSATIONS MEMORY LIMIT
-      ...memory.slice(-10),
+
+      // MEMORY
+      ...memory.slice(-10),[cite: 4]
+
+      // USER MESSAGE
       {
         role: "user",
-        content: message,
+        content: message,[cite: 4]
       },
     ];
 
-    // GROQ ENDPOINT REQUEST
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 2048,
-      }),
+    // GROQ API
+    const response = await fetch([cite: 4]
+      "https://api.groq.com/openai/v1/chat/completions",[cite: 4]
+
+      {
+        method: "POST",[cite: 4]
+
+        headers: {
+          "Content-Type": "application/json",[cite: 4]
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,[cite: 4]
+        },
+
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",[cite: 4]
+          messages: messages,[cite: 4]
+          temperature: 0.6, // दोस्ताना और अच्छे एक्सप्लेनेशन के लिए
+          max_tokens: 1000,   // पर्याप्त विस्तार से समझाने के लिए
+        }),
+      }
+    );
+
+    const data = await response.json();[cite: 4]
+
+    console.log(data);[cite: 4]
+
+    const reply = data?.choices?.[0]?.message?.content || "⚠ No response";[cite: 4]
+
+    res.json({
+      reply,[cite: 4]
     });
-
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content || "⚠ No response from core.";
-
-    res.json({ reply });
   } catch (error) {
-    console.error("SHADOW SYSTEM ERR:", error);
-    res.status(500).json({ reply: "⚠ SHADOW OS INTERACTION ERROR" });
+    console.log(error);[cite: 4]
+
+    res.status(500).json({
+      reply: "⚠ SHADOW OS ERROR",[cite: 4]
+    });
   }
 });
 
-// INITIALIZATION
-const PORT = process.env.PORT || 3000;
+// ======================
+// START SERVER
+// ======================
+
+const PORT = process.env.PORT || 3000;[cite: 4]
+
 app.listen(PORT, () => {
-  console.log(`⚔ SHADOW OS running smoothly on port ${PORT}`);
+  console.log(`⚔ SHADOW OS running on port ${PORT}`);[cite: 4]
 });
